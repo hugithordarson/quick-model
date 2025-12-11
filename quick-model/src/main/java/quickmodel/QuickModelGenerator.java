@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.apache.cayenne.configuration.ConfigurationTree;
 import org.apache.cayenne.configuration.DataChannelDescriptor;
-import org.apache.cayenne.configuration.server.ServerModule;
+import org.apache.cayenne.configuration.runtime.CoreModule;
 import org.apache.cayenne.di.DIBootstrap;
 import org.apache.cayenne.di.Injector;
 import org.apache.cayenne.map.DataMap;
@@ -93,7 +93,7 @@ public class QuickModelGenerator {
 	}
 
 	private void saveAndValidate( final Project project ) {
-		final Injector injector = DIBootstrap.createInjector( List.of( new ServerModule(), new ProjectModule() ) );
+		final Injector injector = DIBootstrap.createInjector( List.of( new CoreModule(), new ProjectModule() ) );
 
 		final URL url;
 

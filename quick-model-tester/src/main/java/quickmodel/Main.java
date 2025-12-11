@@ -11,12 +11,12 @@ import org.apache.cayenne.access.dbsync.CreateIfNoSchemaStrategy;
 import org.apache.cayenne.access.dbsync.SchemaUpdateStrategy;
 import org.apache.cayenne.configuration.DataChannelDescriptor;
 import org.apache.cayenne.configuration.DataNodeDescriptor;
-import org.apache.cayenne.configuration.server.DataDomainProvider;
-import org.apache.cayenne.configuration.server.DataSourceFactory;
-import org.apache.cayenne.configuration.server.ServerRuntime;
-import org.apache.cayenne.configuration.server.ServerRuntimeBuilder;
+import org.apache.cayenne.configuration.runtime.DataDomainProvider;
+import org.apache.cayenne.configuration.runtime.DataSourceFactory;
 import org.apache.cayenne.project.ProjectModule;
 import org.apache.cayenne.query.ObjectSelect;
+import org.apache.cayenne.runtime.CayenneRuntime;
+import org.apache.cayenne.runtime.CayenneRuntimeBuilder;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -45,7 +45,7 @@ public class Main {
 			e.printStackTrace();
 		}
 
-		final ServerRuntime runtime = createServerRuntime();
+		final CayenneRuntime runtime = createRuntime();
 
 		ObjectContext oc = runtime.newContext();
 
@@ -69,8 +69,8 @@ public class Main {
 	/**
 	 * @return A new serverRuntime initialized with DB connection information loaded from the given properties
 	 */
-	public static ServerRuntime createServerRuntime() {
-		final ServerRuntimeBuilder builder = ServerRuntime.builder( "QuickModel" );
+	public static CayenneRuntime createRuntime() {
+		final CayenneRuntimeBuilder builder = CayenneRuntime.builder( "QuickModel" );
 		builder.addConfig( "cayenne/cayenne-testProject.xml" );
 		builder.addModule( b -> b.bind( SchemaUpdateStrategy.class ).to( CreateIfNoSchemaStrategy.class ) );
 		builder.addModule( b -> b.bind( DataSourceFactory.class ).toInstance( new QuickModelDataSourceFactory() ) );
