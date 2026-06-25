@@ -7,7 +7,7 @@
 	<properties>
 		<main.class>eofconverter.Application</main.class>
 		<webobjects.version>5.4.3</webobjects.version>
-		<cayenne.version>5.0-M1</cayenne.version>
+		<cayenne.version>5.0-M2</cayenne.version>
 	</properties>
 
 	<build>
