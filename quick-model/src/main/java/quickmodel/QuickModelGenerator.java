@@ -6,9 +6,7 @@ import java.net.URL;
 import java.sql.Types;
 import java.util.List;
 
-import org.apache.cayenne.configuration.ConfigurationTree;
-import org.apache.cayenne.configuration.DataChannelDescriptor;
-import org.apache.cayenne.configuration.runtime.CoreModule;
+import org.apache.cayenne.CoreModule;
 import org.apache.cayenne.di.DIBootstrap;
 import org.apache.cayenne.di.Injector;
 import org.apache.cayenne.map.DataMap;
@@ -17,9 +15,9 @@ import org.apache.cayenne.map.DbEntity;
 import org.apache.cayenne.map.ObjAttribute;
 import org.apache.cayenne.map.ObjEntity;
 import org.apache.cayenne.project.Project;
-import org.apache.cayenne.project.ProjectModule;
-import org.apache.cayenne.project.ProjectSaver;
-import org.apache.cayenne.project.validation.ProjectValidator;
+import org.apache.cayenne.projecttools.ProjectSaver;
+import org.apache.cayenne.projecttools.ProjectToolsModule;
+import org.apache.cayenne.projecttools.validation.ProjectValidator;
 import org.apache.cayenne.resource.Resource;
 import org.apache.cayenne.resource.URLResource;
 import org.apache.cayenne.validation.ValidationFailure;
@@ -46,15 +44,14 @@ public class QuickModelGenerator {
 	}
 
 	void run() {
-		final DataChannelDescriptor dataChannelDescriptor = new DataChannelDescriptor();
-		dataChannelDescriptor.setName( config().projectName );
-		final Project project = new Project( new ConfigurationTree<>( dataChannelDescriptor ) );
+		final Project project = new Project();
+		project.setName( config().projectName );
 
 		// Current implementation generates only one map
 		final DataMap map = new DataMap( config().mapName );
 		map.setDefaultPackage( config().javaPackageName );
 		map.setQuotingSQLIdentifiers( true );
-		dataChannelDescriptor.getDataMaps().add( map );
+		project.getDataMaps().add( map );
 
 		config().entities.forEach( entity -> {
 			logger.info( "Generating entity {}", entity.name() );
@@ -93,7 +90,7 @@ public class QuickModelGenerator {
 	}
 
 	private void saveAndValidate( final Project project ) {
-		final Injector injector = DIBootstrap.createInjector( List.of( new CoreModule(), new ProjectModule() ) );
+		final Injector injector = DIBootstrap.createInjector( List.of( new CoreModule(), new ProjectToolsModule() ) );
 
 		final URL url;
 
@@ -108,7 +105,7 @@ public class QuickModelGenerator {
 		injector.getInstance( ProjectSaver.class ).saveAs( project, resource );
 
 		final ProjectValidator projectValidator = injector.getInstance( ProjectValidator.class );
-		final ValidationResult validationResult = projectValidator.validate( project.getRootNode() );
+		final ValidationResult validationResult = projectValidator.validate( project );
 
 		for( ValidationFailure validationFailure : validationResult.getFailures() ) {
 			logger.error( "{} : {}", validationFailure.getDescription(), validationFailure.getSource() );

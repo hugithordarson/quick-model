@@ -3,20 +3,10 @@ package quickmodel;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.sql.DataSource;
-
 import org.apache.cayenne.ObjectContext;
-import org.apache.cayenne.access.DataDomain;
-import org.apache.cayenne.access.dbsync.CreateIfNoSchemaStrategy;
-import org.apache.cayenne.access.dbsync.SchemaUpdateStrategy;
-import org.apache.cayenne.configuration.DataChannelDescriptor;
-import org.apache.cayenne.configuration.DataNodeDescriptor;
-import org.apache.cayenne.configuration.runtime.DataDomainProvider;
-import org.apache.cayenne.configuration.runtime.DataSourceFactory;
-import org.apache.cayenne.project.ProjectModule;
+import org.apache.cayenne.project.DataNodeDescriptor;
 import org.apache.cayenne.query.ObjectSelect;
-import org.apache.cayenne.runtime.CayenneRuntime;
-import org.apache.cayenne.runtime.CayenneRuntimeBuilder;
+import org.apache.cayenne.CayenneRuntime;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -67,41 +57,23 @@ public class Main {
 	}
 
 	/**
-	 * @return A new serverRuntime initialized with DB connection information loaded from the given properties
+	 * @return A new runtime backed by an in-memory H2 database
 	 */
 	public static CayenneRuntime createRuntime() {
-		final CayenneRuntimeBuilder builder = CayenneRuntime.builder( "QuickModel" );
-		builder.addConfig( "cayenne/cayenne-testProject.xml" );
-		builder.addModule( b -> b.bind( SchemaUpdateStrategy.class ).to( CreateIfNoSchemaStrategy.class ) );
-		builder.addModule( b -> b.bind( DataSourceFactory.class ).toInstance( new QuickModelDataSourceFactory() ) );
-		builder.addModule( b -> b.bind( DataDomain.class ).toProviderInstance( new QuickModelDataDomainProvider() ) );
-		builder.addModule( new ProjectModule() );
-		return builder.build();
-	}
+		final HikariConfig hikariConf = new HikariConfig();
+		hikariConf.setDriverClassName( "org.h2.Driver" );
+		hikariConf.setJdbcUrl( "jdbc:h2:mem:testerbest" );
 
-	public static class QuickModelDataSourceFactory implements DataSourceFactory {
+		final DataNodeDescriptor dataNode = DataNodeDescriptor
+				.of( "testerbest" )
+				.dataSource( new HikariDataSource( hikariConf ) )
+				.createSchemaIfNeeded()
+				.build();
 
-		@Override
-		public DataSource getDataSource( DataNodeDescriptor nodeDescriptor ) throws Exception {
-			final HikariConfig hikariConf = new HikariConfig();
-			hikariConf.setDriverClassName( "org.h2.Driver" );
-			hikariConf.setJdbcUrl( "jdbc:h2:mem:testerbest" );
-			return new HikariDataSource( hikariConf );
-		}
-	}
-
-	public static class QuickModelDataDomainProvider extends DataDomainProvider {
-
-		@Override
-		protected DataChannelDescriptor loadDescriptor() {
-			final DataChannelDescriptor dataChannelDescriptor = super.loadDescriptor();
-
-			final DataNodeDescriptor dataNode = new DataNodeDescriptor( "testerbest" );
-			dataChannelDescriptor.getNodeDescriptors().add( dataNode );
-			dataNode.getDataMapNames().add( "testMap" );
-			dataNode.setSchemaUpdateStrategyType( CreateIfNoSchemaStrategy.class.getName() );
-
-			return dataChannelDescriptor;
-		}
+		return CayenneRuntime
+				.of( "QuickModel" )
+				.addConfig( "cayenne/cayenne-testProject.xml" )
+				.defaultDataNode( dataNode )
+				.build();
 	}
 }

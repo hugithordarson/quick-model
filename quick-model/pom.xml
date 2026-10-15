@@ -7,7 +7,7 @@
 	<properties>
 		<main.class>eofconverter.Application</main.class>
 		<webobjects.version>5.4.3</webobjects.version>
-		<cayenne.version>5.0-M2</cayenne.version>
+		<cayenne.version>5.0-SNAPSHOT</cayenne.version>
 	</properties>
 
 	<build>
@@ -31,7 +31,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.cayenne</groupId>
-			<artifactId>cayenne-project</artifactId>
+			<artifactId>cayenne-project-tools</artifactId>
 			<version>${cayenne.version}</version>
 		</dependency>
 		<dependency>
